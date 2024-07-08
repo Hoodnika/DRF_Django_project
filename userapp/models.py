@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from config.special_elements import NULLABLE
+from courseapp.models import Course, Lesson
 
 
 class User(AbstractUser):
@@ -21,3 +22,27 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+
+
+class Payment(models.Model):
+    class Type_payment(models.TextChoices):
+        cash = 'Наличные'
+        transfer = 'Переводом'
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='пользователь', related_name='payment')
+    datetime_payment = models.DateTimeField(verbose_name='дата оплаты', auto_now_add=True)
+    cost = models.PositiveIntegerField(verbose_name='сумма оплаты')
+
+    # class Paid_material(models.Choices):
+    #     Course = Course
+    #     Lesson = Lesson
+    #
+    # paid_material = models.ForeignKey(choices=Paid_material.choices, on_delete=models.CASCADE, verbose_name='оплаченный материал')
+
+    paid_course = models.ForeignKey(Course, on_delete=models.SET_NULL, **NULLABLE, related_name='payment')
+    paid_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, **NULLABLE, related_name='payment')
+    payment_type = models.CharField(choices=Type_payment.choices, max_length=16, verbose_name='способ оплаты')
+
+    class Meta:
+        verbose_name = 'Оплата'
+        verbose_name_plural = 'Оплаты'
