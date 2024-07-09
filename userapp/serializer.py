@@ -1,20 +1,25 @@
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 
 from userapp.models import Payment, User
 
 
-class PaymentSerializer(serializers.ModelSerializer):
+class PaymentSerializer(ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
 
+    def create(self, validated_data):
+        payment = Payment.objects.create(**validated_data)
+        return payment
 
-class UserSerializer(serializers.ModelSerializer):
+
+class UserPaymentSerializer(ModelSerializer):
     payment = PaymentSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['id', 'payment', 'email', 'is_staff']
 
     def create(self, validated_data):
         payments = validated_data.pop('payment')
@@ -23,3 +28,9 @@ class UserSerializer(serializers.ModelSerializer):
         for payment in payments:
             Payment.objects.create(user=user, **payment)
         return user
+
+
+class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'phone', 'avatar', 'country']
