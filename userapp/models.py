@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from config.settings import AUTH_USER_MODEL
 from config.special_elements import NULLABLE
 from courseapp.models import Course, Lesson
 
@@ -29,7 +30,8 @@ class Payment(models.Model):
         cash = 'Наличные'
         transfer = 'Переводом'
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='пользователь', related_name='payment')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='пользователь', related_name='payment',
+                              **NULLABLE)
     datetime_payment = models.DateTimeField(verbose_name='дата оплаты', auto_now_add=True)
     cost = models.PositiveIntegerField(verbose_name='сумма оплаты')
 

@@ -1,17 +1,34 @@
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 
-from courseapp.models import Course, Lesson
+from courseapp.models import Course, Lesson, Subscription
+from courseapp.validators import UrlValidator
 
 
-class LessonSerializer(serializers.ModelSerializer):
+class LessonSerializer(ModelSerializer):
     class Meta:
         model = Lesson
         fields = '__all__'
+        validators = [UrlValidator(url='url')]
+
+    def create(self, validated_data):
+        lesson = Lesson.objects.create(**validated_data)
+        return lesson
 
 
-class CourseSerializer(serializers.ModelSerializer):
+class CourseSerializer(ModelSerializer):
+    class Meta:
+        model = Course
+        fields = '__all__'
+
+    def create(self, validated_data):
+        course = Course.objects.create(**validated_data)
+        return course
+
+
+class CourseDetailSerializer(ModelSerializer):
     lessons_count = serializers.SerializerMethodField(read_only=True)
-    lesson = LessonSerializer(many=True)
+    lesson = LessonSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
@@ -27,3 +44,9 @@ class CourseSerializer(serializers.ModelSerializer):
         for lesson in lessons:
             Lesson.objects.create(course=course, **lesson)
         return course
+
+
+class SubscriptionSerializer(ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = '__all__'
