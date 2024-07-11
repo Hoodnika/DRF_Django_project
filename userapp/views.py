@@ -4,6 +4,7 @@ from rest_framework import generics
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny
 
+from courseapp.paginators import CustomPagination
 from userapp.models import Payment, User
 from userapp.permissions import IsMe, IsModer
 from userapp.serializer import PaymentSerializer, UserPaymentSerializer, UserSerializer
@@ -32,6 +33,7 @@ class PaymentCreateAPIView(generics.CreateAPIView):
 class UserPaymentListAPIView(generics.ListAPIView):
     serializer_class = UserPaymentSerializer
     queryset = User.objects.all()
+    pagination_class = CustomPagination
 
 
 class UserCreateAPIView(generics.CreateAPIView):
