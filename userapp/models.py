@@ -30,7 +30,8 @@ class Payment(models.Model):
         cash = 'Наличные'
         transfer = 'Переводом'
 
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='пользователь', related_name='payment', **NULLABLE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='пользователь', related_name='payment',
+                              **NULLABLE)
     datetime_payment = models.DateTimeField(verbose_name='дата оплаты', auto_now_add=True)
     cost = models.PositiveIntegerField(verbose_name='сумма оплаты')
 
