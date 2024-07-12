@@ -1,6 +1,8 @@
+from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from courseapp.models import Course, Lesson
 from userapp.models import Payment, User
 
 
@@ -31,6 +33,12 @@ class UserPaymentSerializer(ModelSerializer):
 
 
 class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'phone', 'avatar', 'country', 'password']
+
+
+class UserCensoredSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'phone', 'avatar', 'country']
