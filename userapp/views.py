@@ -7,7 +7,8 @@ from rest_framework.permissions import AllowAny
 from courseapp.paginators import CustomPagination
 from userapp.models import Payment, User
 from userapp.permissions import IsMe, IsModer
-from userapp.serializer import PaymentSerializer, UserPaymentSerializer, UserSerializer
+from userapp.serializer import PaymentSerializer, UserPaymentSerializer, UserSerializer, UserCensoredSerializer
+from userapp.services import create_stripe_price, create_stripe_session
 
 
 ########PAYMENT############
@@ -21,22 +22,47 @@ class PaymentListAPIView(generics.ListAPIView):
 
 
 class PaymentCreateAPIView(generics.CreateAPIView):
+    """
+    Создаем новую оплату, с владельцем, текущим, авторизованным пользователем
+    """
     serializer_class = PaymentSerializer
     queryset = Payment.objects.all()
 
     def perform_create(self, serializer):
         payment = serializer.save(owner=self.request.user)
+        serializer.is_valid(raise_exception=True)
+        if serializer.validated_data.get('paid_lesson'):
+            price = serializer.validated_data.get('paid_lesson').price
+            price_stripe = create_stripe_price(price)
+        elif serializer.validated_data.get('paid_course'):
+            course = serializer.validated_data.get('paid_course')
+            price = sum(lesson.price for lesson in course.lesson.all())
+            price_stripe = create_stripe_price(price)
+        else:
+            raise ValueError("Не указан paid_lesson или paid_course")
+        payment.price = price
+        session_id, link = create_stripe_session(price_stripe)
+        payment.session_id = session_id
+        payment.link = link
         payment.save()
 
 
 ########USER############
-class UserPaymentListAPIView(generics.ListAPIView):
-    serializer_class = UserPaymentSerializer
+class UserListAPIView(generics.ListAPIView):
+    """
+    Получаем список всех пользователей
+    Доступно только для Moder
+    """
+    serializer_class = UserCensoredSerializer
     queryset = User.objects.all()
     pagination_class = CustomPagination
+    permission_classes = (IsModer,)
 
 
 class UserCreateAPIView(generics.CreateAPIView):
+    """
+    'API endpoint' для регистрации
+    """
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
@@ -48,16 +74,36 @@ class UserCreateAPIView(generics.CreateAPIView):
 
 
 class UserRetrieveAPIView(generics.RetrieveAPIView):
-    serializer_class = UserSerializer
+    """
+    Получаем детальную информацию о конкретном пользователе
+    Доступно только для текущего пользователя и Moder
+    """
+    serializer_class = UserPaymentSerializer
     queryset = User.objects.all()
+    permission_classes = (IsModer | IsMe,)
 
 
 class UserUpdateAPIView(generics.UpdateAPIView):
+    """
+    Изменяем информацию о конкретном пользователе
+    Пользватель может изменять только свой профиль
+    """
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = (IsMe,)
 
 
 class UserDestroyAPIView(generics.DestroyAPIView):
+    """
+    Удаляем конкретного пользователя
+    Пользватель может удалять только свой профиль
+    """
     queryset = User.objects.all()
     permission_classes = (IsMe,)
+
+
+######################
+
+def payment_success(request):
+    context = {}
+    return render(request, 'userapp/payment_success.html', context)
