@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
+from django.db.models import Sum
 
 from courseapp.models import Course, Lesson, Subscription
 from courseapp.validators import UrlValidator
@@ -29,6 +30,7 @@ class CourseSerializer(ModelSerializer):
 class CourseDetailSerializer(ModelSerializer):
     lessons_count = serializers.SerializerMethodField(read_only=True)
     lesson = LessonSerializer(many=True, read_only=True)
+    price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Course
@@ -36,6 +38,9 @@ class CourseDetailSerializer(ModelSerializer):
 
     def get_lessons_count(self, course):
         return Lesson.objects.filter(course=course).count()
+
+    def get_price(self, course):
+        return Lesson.objects.filter(course=course).aggregate(total_price=Sum('price'))['total_price']
 
     def create(self, validated_data):
         lessons = validated_data.pop('lesson')
