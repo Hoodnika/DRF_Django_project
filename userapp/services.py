@@ -21,3 +21,12 @@ def create_stripe_session(price):
         mode="payment",
     )
     return session.get('id'), session.get('url')
+
+
+def create_stripe_product(product):
+    stripe_product = stripe.Product.create(
+        name=product.title,
+        description=product.description,
+        active=True,
+    )
+    return stripe_product.get('id')

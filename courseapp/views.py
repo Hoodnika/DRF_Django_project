@@ -8,6 +8,7 @@ from courseapp.models import Course, Lesson, Subscription
 from courseapp.paginators import CustomPagination
 from courseapp.serializer import CourseSerializer, LessonSerializer, CourseDetailSerializer, SubscriptionSerializer
 from userapp.permissions import IsModer, IsOwner
+from userapp.services import create_stripe_product
 
 
 ########COURSE#########
@@ -49,6 +50,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         Сохраняем созданный экземпляр Курса с владельцем текущего пользователя
         """
         course = serializer.save(owner=self.request.user)
+        create_stripe_product(course)
         course.save()
 
 
@@ -64,6 +66,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         lesson = serializer.save(owner=self.request.user)
+        create_stripe_product(lesson)
         lesson.save()
 
 
