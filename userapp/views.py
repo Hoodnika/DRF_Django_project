@@ -32,12 +32,13 @@ class PaymentCreateAPIView(generics.CreateAPIView):
         payment = serializer.save(owner=self.request.user)
         serializer.is_valid(raise_exception=True)
         if serializer.validated_data.get('paid_lesson'):
-            price = serializer.validated_data.get('paid_lesson').price
-            price_stripe = create_stripe_price(price)
+            lesson = serializer.validated_data.get('paid_lesson')
+            price = lesson.price
+            price_stripe = create_stripe_price(price, lesson.title)
         elif serializer.validated_data.get('paid_course'):
             course = serializer.validated_data.get('paid_course')
             price = sum(lesson.price for lesson in course.lesson.all())
-            price_stripe = create_stripe_price(price)
+            price_stripe = create_stripe_price(price, course.title)
         else:
             raise ValueError("Не указан paid_lesson или paid_course")
         payment.price = price

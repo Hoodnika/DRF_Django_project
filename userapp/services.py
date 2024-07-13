@@ -6,11 +6,11 @@ from config.settings import STRIPE_API_KEY
 stripe.api_key = STRIPE_API_KEY
 
 
-def create_stripe_price(price):
+def create_stripe_price(price, product_title):
     return stripe.Price.create(
         currency="rub",
         unit_amount=price * 100,
-        product_data={"name": "Payment"},
+        product_data={"name": product_title},
     )
 
 
@@ -24,6 +24,7 @@ def create_stripe_session(price):
 
 
 def create_stripe_product(product):
+    """без default_price_data.currency_options.<currency>.unit_amount, потому что потому"""
     stripe_product = stripe.Product.create(
         name=product.title,
         description=product.description,
