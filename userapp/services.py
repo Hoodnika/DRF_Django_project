@@ -24,6 +24,7 @@ def create_stripe_session(price):
 
 
 def create_stripe_product(product):
+    """без default_price_data.currency_options.<currency>.unit_amount, потому что потому"""
     stripe_product = stripe.Product.create(
         name=product.title,
         description=product.description,
