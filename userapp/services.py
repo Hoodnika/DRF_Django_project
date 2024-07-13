@@ -6,11 +6,11 @@ from config.settings import STRIPE_API_KEY
 stripe.api_key = STRIPE_API_KEY
 
 
-def create_stripe_price(price):
+def create_stripe_price(price, product_title):
     return stripe.Price.create(
         currency="rub",
         unit_amount=price * 100,
-        product_data={"name": "Payment"},
+        product_data={"name": product_title},
     )
 
 
