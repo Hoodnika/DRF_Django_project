@@ -11,7 +11,7 @@ from userapp.serializer import PaymentSerializer, UserPaymentSerializer, UserSer
 from userapp.services import create_stripe_price, create_stripe_session
 
 
-########PAYMENT############
+########_PAYMENT_############
 class PaymentListAPIView(generics.ListAPIView):
     serializer_class = PaymentSerializer
     queryset = Payment.objects.all()
@@ -48,7 +48,12 @@ class PaymentCreateAPIView(generics.CreateAPIView):
         payment.save()
 
 
-########USER############
+def payment_success(request):
+    context = {}
+    return render(request, 'userapp/payment_success.html', context)
+
+
+########_USER_############
 class UserListAPIView(generics.ListAPIView):
     """
     Получаем список всех пользователей
@@ -101,10 +106,3 @@ class UserDestroyAPIView(generics.DestroyAPIView):
     """
     queryset = User.objects.all()
     permission_classes = (IsMe,)
-
-
-######################
-
-def payment_success(request):
-    context = {}
-    return render(request, 'userapp/payment_success.html', context)
