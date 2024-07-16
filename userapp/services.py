@@ -1,5 +1,4 @@
 import stripe
-from django.urls import reverse
 
 from config.settings import STRIPE_API_KEY
 
