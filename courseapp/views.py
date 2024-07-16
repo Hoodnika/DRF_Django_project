@@ -1,7 +1,6 @@
-from django.shortcuts import render
 from rest_framework import viewsets, generics
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+
 from rest_framework.response import Response
 
 from courseapp.models import Course, Lesson, Subscription
@@ -10,8 +9,10 @@ from courseapp.serializer import CourseSerializer, LessonSerializer, CourseDetai
 from userapp.permissions import IsModer, IsOwner
 from userapp.services import create_stripe_product
 
+from courseapp.tasks import send_course_update_info
 
-########COURSE#########
+
+########_COURSE_#########
 class CourseViewSet(viewsets.ModelViewSet):
     """
     'API endpoint' для Курсов, имеет вложенный список 'results' в котором хранятся
@@ -53,8 +54,12 @@ class CourseViewSet(viewsets.ModelViewSet):
         create_stripe_product(course)
         course.save()
 
+    def perform_update(self, serializer):
+        course = serializer.save()
+        send_course_update_info.delay(course.id)
 
-########LESSON#########
+
+########_LESSON_#########
 class LessonCreateAPIView(generics.CreateAPIView):
     """
     Создаем новый Урок с владельцем, текущим, авторизованным пользователем
@@ -67,6 +72,8 @@ class LessonCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         lesson = serializer.save(owner=self.request.user)
         create_stripe_product(lesson)
+
+        send_course_update_info.delay(lesson.course.id)
         lesson.save()
 
 
@@ -96,6 +103,20 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     queryset = Lesson.objects.all()
     permission_classes = (IsModer | IsOwner,)
 
+    # def perform_update(self, serializer):
+    #     lesson = serializer.save()
+    #     last_update_at = lesson.course.updated_at
+    #
+    #     send_course_update_info.delay(lesson.course.id)
+
+    def partial_update(self, request, *args, **kwargs):
+        lesson = self.get_object()
+        serializer = self.get_serializer(lesson, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        send_course_update_info.delay(lesson.course.id)
+        return Response(serializer.data)
+
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
     """
@@ -106,7 +127,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     permission_classes = (~IsModer | IsOwner,)
 
 
-########Subscription#########
+########_Subscription_#########
 
 class SubscriptionCreateAPIView(generics.CreateAPIView):
     """
@@ -124,9 +145,9 @@ class SubscriptionCreateAPIView(generics.CreateAPIView):
         subscription = Subscription.objects.filter(user=user, course=course)
 
         if subscription.exists():
-            message = 'Подписка на курс '+str(course.title)+' отменена'
+            message = 'Подписка на курс ' + str(course.title) + ' отменена'
             subscription.delete()
         else:
-            # Subscription.objects.create(user=user, course=course)
-            message = 'Подписка на курс '+str(course.title)+' успешно оформлена'
+            Subscription.objects.create(user=user, course=course)
+            message = 'Подписка на курс ' + str(course.title) + ' успешно оформлена'
         return Response({'message': message})
