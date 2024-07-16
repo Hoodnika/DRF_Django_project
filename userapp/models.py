@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from config.settings import AUTH_USER_MODEL
 from config.special_elements import NULLABLE
 from courseapp.models import Course, Lesson
 
@@ -12,6 +11,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=50, verbose_name='телефон', **NULLABLE)
     avatar = models.ImageField(upload_to='users/', verbose_name='аватар', **NULLABLE)
     country = models.CharField(max_length=50, verbose_name='страна', **NULLABLE)
+    last_login = models.DateTimeField(auto_now=True, verbose_name='Заходил в последний раз', **NULLABLE)
     # token_verification = models.CharField(max_length=50, verbose_name='код верификации', **NULLABLE)
 
     USERNAME_FIELD = 'email'
@@ -39,6 +39,7 @@ class Payment(models.Model):
     payment_type = models.CharField(choices=Type_payment.choices, max_length=16, verbose_name='способ оплаты')
     session_id = models.CharField(max_length=300, verbose_name=' id сессии', **NULLABLE)
     link = models.URLField(max_length=400, verbose_name='Ссылка на оплату', **NULLABLE)
+
     class Meta:
         verbose_name = 'Оплата'
         verbose_name_plural = 'Оплаты'
