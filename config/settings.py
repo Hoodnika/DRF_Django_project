@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
+    'django_celery_beat',
 
     'userapp',
     'courseapp',
@@ -159,6 +160,7 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'UPDATE_LAST_LOGIN': True,
 }
 
 CORS_ALLOWED_ORIGINS = [
@@ -167,7 +169,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://read-and-write.example.com",
+    "http://127.0.0.1:8000/",
 ]
 
 SPECTACULAR_SETTINGS = {
@@ -180,16 +182,34 @@ SPECTACULAR_SETTINGS = {
 STRIPE_API_KEY = os.getenv('STRIPE_API_KEY')
 
 # URL-адрес брокера сообщений
-CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 
 # URL-адрес брокера результатов, также Redis
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-# Часовой пояс для работы Celery
-CELERY_TIMEZONE = "Australia/Tasmania"
+CELERY_BEAT_SCHEDULE = {
+    'check_last_login': {
+        'task': 'courseapp.tasks.check_last_login',
+        'schedule': timedelta(days=1),
+    },
+    'print_loh': {
+        'task': 'courseapp.tasks.print_loh',
+        'schedule': timedelta(seconds=10),
+    },
+}
 
-# Флаг отслеживания выполнения задач
+CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 15000
 
-# Максимальное время на выполнение задачи
-CELERY_TASK_TIME_LIMIT = 30 * 60
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+# EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL')
+
+SERVER_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
