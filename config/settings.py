@@ -193,10 +193,6 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'courseapp.tasks.check_last_login',
         'schedule': timedelta(days=1),
     },
-    'print_loh': {
-        'task': 'courseapp.tasks.print_loh',
-        'schedule': timedelta(seconds=10),
-    },
 }
 
 CELERY_TIMEZONE = TIME_ZONE
