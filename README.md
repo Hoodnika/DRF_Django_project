@@ -1,7 +1,7 @@
 <h1>Docker</h1>
-Создать образы и контейнеры DOCKER с помощью команд: "docker-compose build" и "docker-compose up".
+Создать образы и контейнеры DOCKER с послудующим запуском с помощью команды: "docker compose up -d --build".
 <br>
-<h2>Запуск</h2>
+<h2>Запуск вне контейнера</h2>
 $ git clone git@github.com:Hoodnika/DRF_Django_project.git<br>
 
 Создайте и заполните файл .env в корневой директории по подобию .env.sample:<br>
