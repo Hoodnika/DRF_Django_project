@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv('SECRET_KEY_DJANGO')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -93,8 +93,8 @@ DATABASES = {
         'NAME': os.getenv('POSTGRES_DB'),
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT'),
+        # 'HOST': os.getenv('POSTGRES_HOST'),
+        # 'PORT': os.getenv('POSTGRES_PORT'),
     }
 }
 
@@ -192,6 +192,10 @@ CELERY_BEAT_SCHEDULE = {
     'check_last_login': {
         'task': 'courseapp.tasks.check_last_login',
         'schedule': timedelta(days=1),
+    },
+    'send_course_update_info': {
+        'task': 'courseapp.tasks.send_course_update_info',
+        'schedule': timedelta(hours=4),
     },
 }
 
