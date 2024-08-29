@@ -1,3 +1,9 @@
+# DRF Django Project
+
+Это проект на Django с использованием Django REST Framework.
+
+
+
 <h1>Docker</h1>
 Создать образы и контейнеры DOCKER с послудующим запуском с помощью команды: "docker compose up -d --build".
 <br>
